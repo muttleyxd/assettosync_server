@@ -180,6 +180,7 @@ impl ConfigTrait for ConfigObject {
     }
 
     fn rebuild_mod_storage(&mut self, clear: bool) -> Result<(), String> {
+        let _ = std::fs::create_dir_all(&self.config.mod_storage_location);
         let paths = std::fs::read_dir(&self.config.mod_storage_location);
         if let Err(error) = paths {
             return Err(error.to_string());
