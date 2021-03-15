@@ -1,0 +1,15 @@
+body {
+    background: rgb(25, 81, 147);
+    color: white;
+    width: 500px;
+    margin: auto;
+    display: inline-block;
+}
+
+a:link, a:visited {
+    color: white;
+}
+  
+a:visited {
+    color: white;
+}

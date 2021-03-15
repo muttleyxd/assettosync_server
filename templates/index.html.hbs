@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <p><a href="/">Index</a></p>
+
+        Logged in as {{user_name}}.<br/><br/>
+
+        {{#if flash}}
+        <p>{{#if flash_type}}{{flash_type}}: {{/if}}{{flash}}</p>
+        {{/if}}
+        {{#if admin}}
+        <a href="/user_management">User management</a><br/>
+        <a href="/mod_management">Mod management</a><br/>
+        {{/if}}
+        <a href="/change_password?username={{user_name}}">Change password</a><br/>
+        <form action="logout" method="post">        
+            <div class="container">
+                <button type="submit">Logout</button>
+            </div>
+        </form> 
+    </body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <p><a href="/">Index</a> -> <a href="/mod_management">Mod management</a></p>
+
+        Logged in as {{user_name}}.<br/><br/>
+
+        {{#if flash}}
+        <p>{{#if flash_type}}{{flash_type}}: {{/if}}{{ flash }}</p>
+        {{/if}}
+
+        <div class="mod_list">
+            Mod list:
+            {{#each mods}}
+              <div class="mod">{{this.filename}} ({{this.size_in_megabytes}}M) <a href="/mod_management/download?hash={{this.checksum_md5}}">Download</a> <a href="/mod_management/delete?hash={{this.checksum_md5}}">Delete</a></div>
+            {{/each}}
+        </div>
+
+        <br/><br/>
+        <div class="mod_upload">
+            Upload mods (7z, rar, zip), max 50 at once:
+            <form enctype="multipart/form-data" action="/mod_management/upload" method="post">
+                <input type="file" name="file[]" multiple />
+                <button type="submit">Start uploading mods</button>
+            </form>
+        </div>
+    </body>
+</html>

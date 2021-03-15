@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <p><a href="/">Index</a> -> <a href="/user_management">User management</a></p>
+
+        Logged in as {{user_name}}.<br/><br/>
+
+        {{#if flash}}
+        <p>{{#if flash_type}}{{flash_type}}: {{/if}}{{ flash }}</p>
+        {{/if}}
+
+        <div class="user_list">
+            {{#each users}}
+              <div class="user">{{this.login}}{{#if this.is_admin}} (Administrator){{/if}} <a href="/change_password?username={{this.login}}">Change password</a></div>
+            {{/each}}
+        </div>
+    </body>
+</html>

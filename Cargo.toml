@@ -1,0 +1,17 @@
+[package]
+name = "assettosync-server"
+version = "0.1.0"
+authors = ["Mateusz Szychowski (Muttley) <mateusz@szychowski.it>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "3.0.0-beta.2", features = ["yaml"] }
+rocket = "0.4.7"
+rocket_contrib = {version = "0.4.7", features = ["handlebars_templates"] }
+rocket-multipart-form-data = "0.9.6"
+md-5 = "0.9.1"
+serde = { version = "1.0.124", features = ["derive"] }
+serde_json = "1.0.64"
+sha2 = "0.9.3"

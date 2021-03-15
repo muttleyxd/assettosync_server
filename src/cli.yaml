@@ -1,0 +1,15 @@
+name: assettosync-server
+version: "1.0"
+author: Muttley
+about: Server for AssettoSync
+args:
+    - config:
+        short: c
+        long: config
+        value_name: FILE
+        about: Path to JSON config file
+        takes_value: true
+    - rebuild_database:
+        short: r
+        long: rebuild_database
+        about: Rebuilds mod database, directory from config file is used
