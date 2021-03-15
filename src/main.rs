@@ -11,8 +11,12 @@ use rocket_multipart_form_data::{
     mime::{self, Name},
     MultipartFormData, MultipartFormDataField, MultipartFormDataOptions, Repetition,
 };
-use std::{fs::File, path::{Path, PathBuf}};
 use std::{borrow::Borrow, collections::HashMap, sync::RwLock};
+use std::{
+    fs::File,
+    path::{Path, PathBuf},
+};
+use tempdir::TempDir;
 
 mod config;
 
@@ -238,7 +242,7 @@ struct ModManagementTemplateContext {
     user_name: String,
 }
 
-use rocket::response::{self, Response, Responder};
+use rocket::response::{self, Responder, Response};
 
 struct AssettoModResponse {
     acmod: config::AssettoMod,
@@ -249,7 +253,10 @@ impl<'a> Responder<'a> for AssettoModResponse {
     fn respond_to(self, _: &Request) -> response::Result<'a> {
         Response::build()
             .header(ContentType::ZIP)
-            .raw_header("Content-Disposition", format!("inline; filename=\"{}\"", self.acmod.filename))
+            .raw_header(
+                "Content-Disposition",
+                format!("inline; filename=\"{}\"", self.acmod.filename),
+            )
             .chunked_body(File::open(&self.full_path).unwrap(), 8192)
             .ok()
     }
@@ -275,12 +282,10 @@ fn mod_download(
     for acmod in config.config.mods.iter() {
         if acmod.checksum_md5 == hash {
             let mod_storage = Path::new(&config.config.mod_storage_location);
-            return Ok(
-                AssettoModResponse
-                {
-                    acmod: acmod.clone(),
-                    full_path: mod_storage.join(&acmod.filename),
-                });
+            return Ok(AssettoModResponse {
+                acmod: acmod.clone(),
+                full_path: mod_storage.join(&acmod.filename),
+            });
         }
     }
 
@@ -401,6 +406,78 @@ fn mods_json(
     Ok(Json(mods))
 }
 
+mod common;
+mod install_task;
+
+use fs_extra::dir::CopyOptions;
+
+fn install_mod(archive_path: &PathBuf, server_paths: &Vec<String>) {
+    let temp_dir = TempDir::new("acsync_server_unpack");
+    let temp_dir_output = TempDir::new("acsync_server_install");
+    if let Err(error) = temp_dir {
+        println!("Error creating temp_dir: {}", error.to_string());
+        return;
+    }
+    if let Err(error) = temp_dir_output {
+        println!("Error creating temp_dir: {}", error.to_string());
+        return;
+    }
+    let temp_dir = temp_dir.unwrap();
+    let temp_dir_output = temp_dir_output.unwrap();
+    let temporary_directory = temp_dir.path();
+    let output_directory = temp_dir_output.path();
+    let _ = std::fs::create_dir_all(output_directory.join("content/cars"));
+    let _ = std::fs::create_dir_all(output_directory.join("content/tracks"));
+    let _ = common::unpack_archive(Path::new(archive_path), temporary_directory);
+    for task in
+        install_task::determine_install_tasks(&common::recursive_ls(temporary_directory)).unwrap()
+    {
+        let target_path = Path::new(output_directory).join(task.target_path);
+        println!("{} -> {:?}", task.source_path, target_path);
+        let result = fs_extra::dir::move_dir(task.source_path, target_path, &CopyOptions::new());
+        if let Err(error) = result {
+            println!("Error while installing mod: {}", error.to_string());
+            return;
+        }
+    }
+
+    let copy_options = fs_extra::file::CopyOptions {
+        overwrite: true,
+        skip_exist: true,
+        buffer_size: 65536,
+    };
+
+    // for output_dir in server_paths
+    for output_dir_str in server_paths {
+        let output_dir = Path::new(output_dir_str);
+        for entry in common::recursive_ls(output_directory) {
+            let path = Path::new(&entry.path);
+            let without_prefix = path.strip_prefix(output_directory).unwrap();
+            let target_path = output_dir.join(without_prefix);
+
+            if entry.is_file {
+                let extension = path.extension().unwrap().to_str().unwrap();
+                let parent_dir_name = path
+                    .parent()
+                    .unwrap()
+                    .file_name()
+                    .unwrap()
+                    .to_str()
+                    .unwrap();
+                if extension == "acd" || extension == "ini" || parent_dir_name == "data" {
+                    let _ = std::fs::create_dir_all(&target_path.parent().unwrap());
+                    let _ = fs_extra::file::copy(path, target_path, &copy_options);
+                }
+            } else {
+                let dirname = path.file_name().unwrap().to_str().unwrap();
+                if dirname == "skins" {
+                    let _ = std::fs::create_dir_all(&target_path);
+                }
+            }
+        }
+    }
+}
+
 #[post("/mod_management/upload", data = "<data>")]
 fn mod_upload(
     content_type: &ContentType,
@@ -428,6 +505,7 @@ fn mod_upload(
     let mut good_mods_count = 0;
     let mut bad_mods_count = 0;
     let archives = multipart_form_data.files.get("file[]");
+    let server_paths = config.get_server_paths();
     if let Some(file_fields) = archives {
         for file in file_fields {
             if file.file_name.is_none() {
@@ -465,6 +543,7 @@ fn mod_upload(
                 continue;
             }
 
+            install_mod(&output_path, &server_paths);
             good_mods_count += 1;
         }
     }

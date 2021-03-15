@@ -23,6 +23,7 @@ pub struct User {
 pub struct Config {
     pub mods: Vec<AssettoMod>,
     pub mod_storage_location: String,
+    pub server_paths: Vec<String>,
     pub users: Vec<User>,
 }
 
@@ -38,6 +39,7 @@ pub trait ConfigTrait {
     fn delete_mod(&mut self, checksum_md5: &String) -> Result<(), String>;
     fn delete_user(&mut self, login: &String) -> Result<(), &str>;
     fn get_mod_list(&self) -> Vec<AssettoMod>;
+    fn get_server_paths(&self) -> Vec<String>;
     fn is_login_data_valid(&self, login: &String, password: &String) -> bool;
     fn is_user_admin(&self, login: &String) -> bool;
     fn rebuild_mod_storage(&mut self, clear: bool) -> Result<(), String>;
@@ -136,7 +138,11 @@ impl ConfigTrait for ConfigObject {
     }
 
     fn delete_mod(&mut self, checksum_md5: &String) -> Result<(), String> {
-        let index = self.config.mods.iter().position(|acmod| acmod.checksum_md5 == *checksum_md5);
+        let index = self
+            .config
+            .mods
+            .iter()
+            .position(|acmod| acmod.checksum_md5 == *checksum_md5);
         if let None = index {
             return Err("Mod not found".to_string());
         }
@@ -144,11 +150,12 @@ impl ConfigTrait for ConfigObject {
 
         let storage_path = Path::new(&self.config.mod_storage_location);
         let acmod = &self.config.mods[index];
-        
+
         if let Err(error) = std::fs::remove_file(storage_path.join(&acmod.filename)) {
             return Err(error.to_string());
         }
         self.config.mods.remove(index);
+        write_config_to_json(Path::new(&self.path), &self.config);
         Ok(())
     }
 
@@ -159,6 +166,10 @@ impl ConfigTrait for ConfigObject {
 
     fn get_mod_list(&self) -> Vec<AssettoMod> {
         return self.config.mods.clone();
+    }
+
+    fn get_server_paths(&self) -> Vec<String> {
+        return self.config.server_paths.clone();
     }
 
     fn is_login_data_valid(&self, login: &String, password: &String) -> bool {

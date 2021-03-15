@@ -1,6 +1,9 @@
 {
   "mods": [],
   "mod_storage_location": "./mods",
+  "server_paths": [
+    "/home/muttley/servers/assetto_corsa"
+  ],
   "users": [
     {
       "is_admin": true,
