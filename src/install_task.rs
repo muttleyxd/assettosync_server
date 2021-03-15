@@ -109,13 +109,17 @@ pub fn determine_install_tasks(entry_list: &Vec<FsEntry>) -> Result<Vec<InstallT
             target_path: "".to_string(),
         };
         ret.push(task);
-    }
-    if extension_dir_count == 1 {
-        let task = InstallTask {
-            source_path: extension_dirs[0].path.clone(),
-            target_path: "".to_string(),
-        };
-        ret.push(task);
+        if extension_dir_count == 1 {
+            let content_parent = Path::new(&content_dirs[0].path).parent().unwrap();
+            let extension_parent = Path::new(&extension_dirs[0].path).parent().unwrap();
+            if *content_parent == *extension_parent {
+                let task = InstallTask {
+                    source_path: extension_dirs[0].path.clone(),
+                    target_path: "".to_string(),
+                };
+                ret.push(task);
+            }
+        }
     }
     if ret.len() > 0 {
         return Ok(ret);

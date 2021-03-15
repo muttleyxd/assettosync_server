@@ -456,7 +456,10 @@ fn install_mod(archive_path: &PathBuf, server_paths: &Vec<String>) {
             let target_path = output_dir.join(without_prefix);
 
             if entry.is_file {
-                let extension = path.extension().unwrap().to_str().unwrap();
+                let mut extension: String = "".to_string();
+                if path.extension().is_some() {
+                    extension = path.extension().unwrap().to_str().unwrap().to_string();
+                }
                 let parent_dir_name = path
                     .parent()
                     .unwrap()
