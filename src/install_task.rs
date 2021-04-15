@@ -22,6 +22,7 @@ fn dir_contains(entry_list: &Vec<FsEntry>, dir: &str, entries: &Vec<&str>) -> bo
     })
 }
 
+#[derive(PartialEq)]
 enum ContentType {
     Car,
     Track,
@@ -84,6 +85,11 @@ pub fn find_mods(entry_list: &Vec<FsEntry>) -> Vec<Mod> {
     mods
 }
 
+fn extension_dir_is_mod_dir(entry_list: &Vec<FsEntry>, entry: &FsEntry) -> bool {
+    let dir = Path::new(&entry.path).parent().unwrap();
+    determine_content_type(entry_list, dir.to_str().unwrap()) != ContentType::Unknown
+}
+
 pub fn determine_install_tasks(entry_list: &Vec<FsEntry>) -> Result<Vec<InstallTask>, &str> {
     let content_dirs: Vec<&FsEntry> = entry_list
         .iter()
@@ -91,7 +97,14 @@ pub fn determine_install_tasks(entry_list: &Vec<FsEntry>) -> Result<Vec<InstallT
         .collect();
     let extension_dirs: Vec<&FsEntry> = entry_list
         .iter()
-        .filter(|&p| !p.is_file && Path::new(&p.path).file_name().unwrap() == "extension")
+        .filter(|&p| {
+            let is_extension_dir =
+                !p.is_file && Path::new(&p.path).file_name().unwrap() == "extension";
+            if !is_extension_dir {
+                return false;
+            }
+            !extension_dir_is_mod_dir(entry_list, p)
+        })
         .collect();
 
     let content_dir_count = content_dirs.len();
