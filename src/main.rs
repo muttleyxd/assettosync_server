@@ -4,14 +4,12 @@
 extern crate rocket;
 
 use clap::{load_yaml, App};
-use md5::digest::Output;
+use rocket::http::ContentType;
 use rocket::Data;
-use rocket::{http::ContentType, response::NamedFile};
 use rocket_multipart_form_data::{
-    mime::{self, Name},
     MultipartFormData, MultipartFormDataField, MultipartFormDataOptions, Repetition,
 };
-use std::{borrow::Borrow, collections::HashMap, sync::RwLock};
+use std::{collections::HashMap, sync::RwLock};
 use std::{
     fs::File,
     path::{Path, PathBuf},
@@ -21,15 +19,17 @@ use tempdir::TempDir;
 mod config;
 
 use config::{ConfigObject, ConfigTrait};
+use rocket::config::{Config, Environment};
 use rocket::http::{Cookie, Cookies};
 use rocket::request::Form;
 use rocket::response::{Flash, Redirect};
 use rocket::State;
 use rocket::{
-    request::{self, FlashMessage, FromRequest, Request},
+    request::{FlashMessage, Request},
     response::content,
 };
 use rocket_contrib::{json::Json, templates::Template};
+use std::process::Command;
 
 fn get_user_name_from_cookie(cookies: &mut Cookies) -> Option<String> {
     let cookie = cookies.get_private("user_name");

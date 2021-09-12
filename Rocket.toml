@@ -1,5 +1,0 @@
-[development]
-address = "0.0.0.0"
-
-[global]
-secret_key = "bWfdwsyUgBRtD8vUkUsgBC+t1OhjKzk0fzory2Z6gNs="
