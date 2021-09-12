@@ -13,7 +13,7 @@ pub struct InstallTask {
 fn dir_contains(entry_list: &Vec<FsEntry>, dir: &str, entries: &Vec<&str>) -> bool {
     entry_list.iter().any(|i| {
         for entry in entries {
-            let path = format!("{}/{}", dir, entry);
+            let path = format!("{}{}{}", dir, std::path::MAIN_SEPARATOR, entry);
             if WildMatch::new(path.as_ref()).is_match(i.path.as_ref()) {
                 return true;
             }
@@ -157,7 +157,6 @@ pub fn determine_install_tasks(entry_list: &Vec<FsEntry>) -> Result<Vec<InstallT
 
 #[cfg(test)]
 mod tests {
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
 
     fn vec_equal<T: PartialEq>(a: &Vec<T>, b: &Vec<T>) -> bool {
