@@ -1,6 +1,9 @@
 {
+  "bind_address": "0.0.0.0",
   "mods": [],
   "mod_storage_location": "./mods",
+  "port": 8080,
+  "secret_key": null,
   "server_paths": [
     "/home/muttley/servers/assetto_corsa"
   ],
