@@ -654,9 +654,30 @@ fn main() {
         user_management
     ];
 
+    let secret_key: String;
+    let secret_key_option = &config.config.secret_key;
+    if let Some(key) = secret_key_option {
+        secret_key = key.to_string();
+    } else {
+        secret_key = String::from_utf8(
+            Command::new("openssl")
+                .arg("rand")
+                .arg("-base64")
+                .arg("32")
+                .output()
+                .expect("failed to generate secret key")
+                .stdout,
+        )
+        .expect("command returned non-UTF8 output")
+        .trim_end()
+        .to_string();
+        config.set_secret_key(secret_key.clone());
+    }
+
     let rocket_config = Config::build(Environment::Staging)
         .address(&config.config.bind_address)
         .port(config.config.port)
+        .secret_key(secret_key)
         .finalize()
         .unwrap();
 

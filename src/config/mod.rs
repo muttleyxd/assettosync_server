@@ -24,6 +24,7 @@ pub struct Config {
     pub mods: Vec<AssettoMod>,
     pub mod_storage_location: String,
     pub port: u16,
+    pub secret_key: Option<String>,
     pub server_paths: Vec<String>,
     pub users: Vec<User>,
 }
@@ -44,6 +45,7 @@ pub trait ConfigTrait {
     fn is_login_data_valid(&self, login: &String, password: &String) -> bool;
     fn is_user_admin(&self, login: &String) -> bool;
     fn rebuild_mod_storage(&mut self, clear: bool) -> Result<(), String>;
+    fn set_secret_key(&mut self, secret_key: String);
     fn user_exists(&self, login: &String) -> bool;
 }
 
@@ -225,6 +227,11 @@ impl ConfigTrait for ConfigObject {
         write_config_to_json(Path::new(&self.path), &self.config);
 
         Ok(())
+    }
+
+    fn set_secret_key(&mut self, secret_key: String) {
+        self.config.secret_key = Some(secret_key);
+        write_config_to_json(Path::new(&self.path), &self.config);
     }
 
     fn user_exists(&self, login: &String) -> bool {
