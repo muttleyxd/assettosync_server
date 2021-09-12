@@ -654,8 +654,14 @@ fn main() {
         user_management
     ];
 
+    let rocket_config = Config::build(Environment::Staging)
+        .address(&config.config.bind_address)
+        .port(config.config.port)
+        .finalize()
+        .unwrap();
+
     let lock = RwLock::new(config);
-    rocket::ignite()
+    rocket::custom(rocket_config)
         .manage(lock)
         .mount("/", pages)
         .attach(Template::fairing())

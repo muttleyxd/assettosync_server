@@ -20,8 +20,10 @@ pub struct User {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
+    pub bind_address: String,
     pub mods: Vec<AssettoMod>,
     pub mod_storage_location: String,
+    pub port: u16,
     pub server_paths: Vec<String>,
     pub users: Vec<User>,
 }
