@@ -3,6 +3,9 @@
 #[macro_use]
 extern crate rocket;
 
+#[cfg(test)]
+pub mod tests;
+
 use clap::{load_yaml, App};
 use rocket::http::ContentType;
 use rocket::Data;
@@ -16,6 +19,7 @@ use std::{
 };
 use tempdir::TempDir;
 
+mod archive_unpacker;
 mod config;
 
 use config::{ConfigObject, ConfigTrait};
@@ -428,7 +432,7 @@ fn install_mod(archive_path: &PathBuf, server_paths: &Vec<String>) {
     let output_directory = temp_dir_output.path();
     let _ = std::fs::create_dir_all(output_directory.join("content/cars"));
     let _ = std::fs::create_dir_all(output_directory.join("content/tracks"));
-    let _ = common::unpack_archive(Path::new(archive_path), temporary_directory);
+    let _ = archive_unpacker::unpack_archive(Path::new(archive_path), temporary_directory);
     for task in
         install_task::determine_install_tasks(&common::recursive_ls(temporary_directory)).unwrap()
     {
