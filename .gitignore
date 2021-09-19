@@ -1,3 +1,12 @@
+# vscode configuration
 .vscode/
+
+# build output
 /target
-config.json
+
+# possible default mod location
+/mods/
+
+# config files
+!config.json.example
+config.json*
