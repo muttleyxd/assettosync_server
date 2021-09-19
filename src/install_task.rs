@@ -41,7 +41,7 @@ fn dir_contains(entry_list: &Vec<FsEntry>, dir: &str, entries: &Vec<&str>) -> bo
     })
 }
 
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 enum ContentType {
     Car,
     Track,
@@ -167,7 +167,7 @@ pub fn determine_install_tasks(entry_list: &Vec<FsEntry>) -> Result<Vec<InstallT
                 source_path: ac_mod.path,
                 target_path: "content/tracks".to_string(),
             }),
-            ContentType::Unknown => println!("Sum ting wong"),
+            ContentType::Unknown => println!("Failed to determine content type for {}", ac_mod.path),
         }
     }
 
@@ -184,7 +184,87 @@ mod tests {
     }
 
     #[test]
-    fn test_one_content_dir() {
+    fn test_vec_equal() {
+        assert!(vec_equal(&vec![1, 2, 3], &vec![1, 2, 3]));
+        assert!(vec_equal(&Vec::<u32>::new(), &Vec::<u32>::new()));
+        assert!(!vec_equal(&vec![1, 2], &vec![1, 2, 3]));
+    }
+
+    #[test]
+    fn test_determine_content_type() {
+        let unknown_content_entries: Vec<FsEntry> = vec![
+            FsEntry {
+                path: "/unknown_content".to_string(),
+                is_file: false,
+            },
+            FsEntry {
+                path: "/unknown_content/whatever".to_string(),
+                is_file: true,
+            },
+            FsEntry {
+                path: "/some_car".to_string(),
+                is_file: false,
+            },
+            FsEntry {
+                path: "/some_car/driver_base_pos.knh".to_string(),
+                is_file: true,
+            },
+            FsEntry {
+                path: "/some_car/some_car.kn5".to_string(),
+                is_file: true,
+            },
+            FsEntry {
+                path: "/another_car".to_string(),
+                is_file: false,
+            },
+            FsEntry {
+                path: "/another_car/animations".to_string(),
+                is_file: false,
+            },
+            FsEntry {
+                path: "/another_car/data.acd".to_string(),
+                is_file: true,
+            },
+            FsEntry {
+                path: "/some_track".to_string(),
+                is_file: false,
+            },
+            FsEntry {
+                path: "/some_track/models.ini".to_string(),
+                is_file: true,
+            },
+            FsEntry {
+                path: "/some_track/some_track.kn5".to_string(),
+                is_file: true,
+            },
+        ];
+        assert_eq!(ContentType::Unknown, determine_content_type(&unknown_content_entries, "/unknown_content"));
+        assert_eq!(ContentType::Car, determine_content_type(&unknown_content_entries, "/some_car"));
+        assert_eq!(ContentType::Car, determine_content_type(&unknown_content_entries, "/another_car"));
+        assert_eq!(ContentType::Track, determine_content_type(&unknown_content_entries, "/some_track"));
+    }
+
+    #[test]
+    fn test_determine_install_tasks_unknown_mod_content() {
+        let entries: Vec<FsEntry> = vec![
+            FsEntry {
+                path: "/some_super_car".to_string(),
+                is_file: false,
+            },
+            FsEntry {
+                path: "/some_super_car/whatever".to_string(),
+                is_file: true,
+            },
+        ];
+        let expected: Vec<InstallTask> = vec![];
+        let tasks = determine_install_tasks(&entries);
+
+        assert!(tasks.is_ok());
+        assert!(vec_equal(&expected, &tasks.unwrap()));
+    }
+
+    #[test]
+    fn test_determine_install_tasks_one_content_dir() {
         let simple_mod_entries: Vec<FsEntry> = vec![
             FsEntry {
                 path: "/tmp/unpacked/content".to_string(),
@@ -219,7 +299,7 @@ mod tests {
     }
 
     #[test]
-    fn test_one_content_dir_and_one_extension_dir() {
+    fn test_determine_install_tasks_one_content_dir_and_one_extension_dir() {
         let simple_mod_entries: Vec<FsEntry> = vec![
             FsEntry {
                 path: "/tmp/unpacked/content".to_string(),
@@ -248,7 +328,7 @@ mod tests {
     }
 
     #[test]
-    fn test_multiple_content_dirs() {
+    fn test_determine_install_tasks_multiple_content_dirs() {
         let simple_mod_entries: Vec<FsEntry> = vec![
             FsEntry {
                 path: "/tmp/unpacked/aaa/content".to_string(),
@@ -266,7 +346,7 @@ mod tests {
     }
 
     #[test]
-    fn test_multiple_extension_dirs() {
+    fn test_determine_install_tasks_multiple_extension_dirs() {
         let simple_mod_entries: Vec<FsEntry> = vec![
             FsEntry {
                 path: "/tmp/unpacked/aaa/extension".to_string(),
@@ -284,7 +364,7 @@ mod tests {
     }
 
     #[test]
-    fn test_one_car_dir() {
+    fn test_determine_install_tasks_one_car_dir() {
         let simple_mod_entries: Vec<FsEntry> = vec![
             FsEntry {
                 path: "/tmp/unpacked/some_car".to_string(),
@@ -311,7 +391,7 @@ mod tests {
     }
 
     #[test]
-    fn test_one_car_dir_one_track_dir() {
+    fn test_determine_install_tasks_one_car_dir_one_track_dir() {
         let simple_mod_entries: Vec<FsEntry> = vec![
             FsEntry {
                 path: "/tmp/unpacked/some_car".to_string(),
