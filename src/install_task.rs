@@ -1,13 +1,32 @@
 use wildmatch::WildMatch;
 
 use crate::common::FsEntry;
+use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::path::Path;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Eq)]
 pub struct InstallTask {
     pub source_path: String,
     pub target_path: String,
+}
+
+impl Ord for InstallTask {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.source_path.cmp(&other.source_path)
+    }
+}
+
+impl PartialOrd for InstallTask {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl PartialEq for InstallTask {
+    fn eq(&self, other: &Self) -> bool {
+        self.source_path == other.source_path
+    }
 }
 
 fn dir_contains(entry_list: &Vec<FsEntry>, dir: &str, entries: &Vec<&str>) -> bool {
@@ -322,17 +341,19 @@ mod tests {
 
         let expected: Vec<InstallTask> = vec![
             InstallTask {
-                source_path: "/tmp/unpacked/some_car".to_string(),
-                target_path: "content/cars".to_string(),
-            },
-            InstallTask {
                 source_path: "/tmp/unpacked/nested/whatever/some_track".to_string(),
                 target_path: "content/tracks".to_string(),
+            },
+            InstallTask {
+                source_path: "/tmp/unpacked/some_car".to_string(),
+                target_path: "content/cars".to_string(),
             },
         ];
         let tasks = determine_install_tasks(&simple_mod_entries);
 
         assert!(tasks.is_ok());
-        assert!(vec_equal(&expected, &tasks.unwrap()));
+        let mut tasks = tasks.unwrap();
+        tasks.sort();
+        assert!(vec_equal(&expected, &tasks));
     }
 }
