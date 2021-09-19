@@ -167,7 +167,9 @@ pub fn determine_install_tasks(entry_list: &Vec<FsEntry>) -> Result<Vec<InstallT
                 source_path: ac_mod.path,
                 target_path: "content/tracks".to_string(),
             }),
-            ContentType::Unknown => println!("Failed to determine content type for {}", ac_mod.path),
+            ContentType::Unknown => {
+                println!("Failed to determine content type for {}", ac_mod.path)
+            }
         }
     }
 
@@ -238,10 +240,22 @@ mod tests {
                 is_file: true,
             },
         ];
-        assert_eq!(ContentType::Unknown, determine_content_type(&unknown_content_entries, "/unknown_content"));
-        assert_eq!(ContentType::Car, determine_content_type(&unknown_content_entries, "/some_car"));
-        assert_eq!(ContentType::Car, determine_content_type(&unknown_content_entries, "/another_car"));
-        assert_eq!(ContentType::Track, determine_content_type(&unknown_content_entries, "/some_track"));
+        assert_eq!(
+            ContentType::Unknown,
+            determine_content_type(&unknown_content_entries, "/unknown_content")
+        );
+        assert_eq!(
+            ContentType::Car,
+            determine_content_type(&unknown_content_entries, "/some_car")
+        );
+        assert_eq!(
+            ContentType::Car,
+            determine_content_type(&unknown_content_entries, "/another_car")
+        );
+        assert_eq!(
+            ContentType::Track,
+            determine_content_type(&unknown_content_entries, "/some_track")
+        );
     }
 
     #[test]
